@@ -366,22 +366,27 @@ ALUControl[2],ALUControl[3] = Operation
 */
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
 {   
-	BIT Less = 0;
-	BIT SET;
-	BIT Carry;
+	BIT Less = 0; //Carries the result of subtraction from ALU 31 to ALU 0 for Set Less Than
+	BIT SET; //Used as a placeholder for ALUs 0-30
+	BIT Carry; //Used to pass carryOut of an ALU to carryIn of the next
+
+	//ALU 0 takes carrtIn from ALUControl
+	ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[3], ALUControl[2], Result, &Carry, &SET);
+	*Zero = not_gate(Result[0]);
 	
-	ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[2], ALUControl[3], Result, &Carry, &SET);
-	*Zero = not_gate(Result);
-	
+	//ALUs 1-30 are identical
 	for(int i = 1; i < 31; i++)
 	{
-		ALU1(Input1[i], Input2[i], ALUControl[1], Carry, Less, ALUControl[2], ALUControl[3], Result+i, &Carry, &SET);
-		*Zero = and_gate(*Zero, not_gate(Result+i));
+		ALU1(Input1[i], Input2[i], ALUControl[1], Carry, Less, ALUControl[3], ALUControl[2], Result+i, &Carry, &SET);
+		*Zero = and_gate(*Zero, not_gate(Result[i])); //Zero will be true only if all the Result bits are 0
 	}
 	
-	ALU1(Input1[31], Input2[31], ALUControl[1], Carry, Less, ALUControl[2], ALUControl[3], Result+31, &Carry, &Less);
-	*Zero = and_gate(*Zero, not_gate(Result+31));
-	ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[2], ALUControl[3], Result, &Carry, &SET);
+	//ALU 31 sets the Less variable
+	ALU1(Input1[31], Input2[31], ALUControl[1], Carry, Less, ALUControl[3], ALUControl[2], Result+31, &Carry, &Less);
+	*Zero = and_gate(*Zero, not_gate(Result[31]));
+	//Run ALU 0 one final time for Set Less Than
+	ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[3], ALUControl[2], Result, &Carry, &SET);
+	*Zero = and_gate(*Zero, not_gate(Result[0]));
 }
 
 void Data_Memory(BIT MemWrite, BIT MemRead, 
