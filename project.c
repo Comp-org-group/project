@@ -208,6 +208,42 @@ int binary_to_integer(BIT* A)
   return (int)a;
 }
 
+void decoder3(BIT* I, BIT EN, BIT* O)
+{
+  // TODO: implement 3-to-8 decoder using gates
+  // See lecture slides, book, and/or online resources for logic designs
+  
+  O[0] = and_gate3(not_gate(I[2]), not_gate(I[1]), not_gate(I[0]));
+  O[1] = and_gate3(not_gate(I[2]), not_gate(I[1]), I[0]);
+  O[2] = and_gate3(not_gate(I[2]), I[1], not_gate(I[0]));
+  O[3] = and_gate3(not_gate(I[2]), I[1], I[0]);
+  O[4] = and_gate3(I[2], not_gate(I[1]), not_gate(I[0]));
+  O[5] = and_gate3(I[2], not_gate(I[1]), I[0]);
+  O[6] = and_gate3(I[2], I[1], not_gate(I[0]));
+  O[7] = and_gate3(I[2], I[1], I[0]);
+  
+  O[0] = and_gate(EN, O[0]);
+  O[1] = and_gate(EN, O[1]);
+  O[2] = and_gate(EN, O[2]);
+  O[3] = and_gate(EN, O[3]);
+  O[4] = and_gate(EN, O[4]);
+  O[5] = and_gate(EN, O[5]);
+  O[6] = and_gate(EN, O[6]);
+  O[7] = and_gate(EN, O[7]);
+  
+  return;
+}
+
+void decoder5(BIT* I, BIT* O)
+{
+   BIT EN[4] = {FALSE};
+   decoder2(I[3], I[4], &EN[0], &EN[1], &EN[2], &EN[3]);
+   decoder3(I, EN[3], &O[24]);
+   decoder3(I, EN[2], &O[16]);
+   decoder3(I, EN[1], &O[8]);
+   decoder3(I, EN[0], &O[0]);
+}
+
 
 /******************************************************************************/
 /* Parsing functions */
@@ -314,7 +350,12 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   // Input: two 5-bit register addresses
   // Output: the values of the specified registers in ReadData1 and ReadData2
   // Note: Implementation will be very similar to instruction memory circuit
-  
+  char temp_o[32]; 
+  char temp_o2[32]; 
+  decoder5(ReadRegister1,temp_o);
+  decoder5(ReadRegister2,temp_o2);
+  copy_bits(MEM_Register[to],ReadData1);
+  copy_bits(MEM_Register[to2],ReadData2);
 }
 
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
