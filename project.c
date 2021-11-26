@@ -57,6 +57,7 @@ int binary_to_integer(BIT* A);
 
 int get_instructions(BIT Instructions[][32]);
 
+void Write_Instruction_Memory(int instruction_count, BIT* instruction_code);
 void Instruction_Memory(BIT* ReadAddress, BIT* Instruction);
 void Control(BIT* OpCode,
   BIT* RegDst, BIT* Jump, BIT* Branch, BIT* MemRead, BIT* MemToReg,
@@ -186,13 +187,27 @@ void print_binary(BIT* A)
 }
 
 void convert_to_binary(int a, BIT* A, int length)
+/* convert integer to 2's complement BIT representation */
 {
-  /* Use your implementation from Lab 6 */
+  // Note: A[0] is least significant bit and A[31] is most significant bit
+  convert_to_binary_char(a, A, 32);
 }
 
 void convert_to_binary_char(int a, char* A, int length)
+/*  converting integer->2's complement binary */
 {
-  /* Use your implementation from Lab 6 */
+  if (a >= 0) {
+    for (int i = 0; i < length; ++i) {
+      A[i] = (a % 2 == 1 ? '1' : '0');
+      a /= 2;
+    }
+  } else {
+    a += 1;
+    for (int i = 0; i < length; ++i) {
+      A[i] = (a % 2 == 0 ? '1' : '0');
+      a /= 2;
+    }
+  }
 }
   
 int binary_to_integer(BIT* A)
@@ -215,26 +230,149 @@ int binary_to_integer(BIT* A)
 
 // TODO: Implement any helper functions to assist with parsing
 
-int get_instructions(BIT Instructions[][32])
+void set_register(char* input, char* output)
+/* convert register name to 5 bit instruction code */
 {
+// suppress -Wall warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+
+  if (strcmp(input, "zero") == 0)
+    strncpy(output, "00000", 5);
+  else if (strcmp(input, "v0") == 0)
+    strncpy(output, "01000", 5);
+  else if (strcmp(input, "a0") == 0)
+    strncpy(output, "00100", 5);
+  else if (strcmp(input, "t0") == 0)
+    strncpy(output, "00010", 5);
+  else if (strcmp(input, "t1") == 0)
+    strncpy(output, "10010", 5);
+  else if (strcmp(input, "s0") == 0)
+    strncpy(output, "00001", 5);
+  else if (strcmp(input, "s1") == 0)
+    strncpy(output, "10001", 5);
+  else if (strcmp(input, "sp") == 0)
+    strncpy(output, "10111", 5);
+  else if (strcmp(input, "ra") == 0)
+    strncpy(output, "11111", 5);
+
+#pragma GCC diagnostic pop
+}
+
+int get_instructions(BIT Instructions[][32])
+/* performs conversion of instructions to binary */
+/* Output - Convert instructions to binary in the instruction memory */
+/* Returns the total number of instructions */
+{
+// suppress -Wall warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+
   char line[256] = {0};
   int instruction_count = 0;
   while (fgets(line, 256, stdin) != NULL) {        
-    // TODO: perform conversion of instructions to binary
-    // Input: coming from stdin via: ./a.out < input.txt
-    // Output: Convert instructions to binary in the instruction memory
-    // Return: Total number of instructions
-    // Note: you are free to use if-else and external libraries here
-    // Note: you don't need to implement circuits for saving to inst. mem.
-    // My approach:
-    // - Use sscanf on line to get strings for instruction and registers
-    // - Use instructions to determine op code, funct, and shamt fields
-    // - Convert immediate field and jump address field to binary
-    // - Use registers to get rt, rd, rs fields
-    // Note: I parse everything as strings, then convert to BIT array at end
-  
+    BIT output[32] = {FALSE}; // the binary form of the instruction
+
+    char inst[256] = {0};
+    char op1[256] = {0};
+    char op2[256] = {0};
+    char op3[256] = {0};
+
+    // Use sscanf on line to get strings for instruction and registers
+    sscanf(line, "%s %s %s %s", inst, op1, op2, op3);
+    
+    char temp_output[33] = {0};
+    char rs[6] = {0};
+    char rt[6] = {0};
+    char rd[6] = {0};
+    char imm[17] = {0};
+    char address[27] = {0};
+    
+    if (strcmp(inst, "lw") == 0 ||
+        strcmp(inst, "sw") == 0 ||
+        strcmp(inst, "beq") == 0 ||
+        strcmp(inst, "addi") == 0) {
+      /* Convert immediate field and jump address field to binary */
+      convert_to_binary_char(atoi(op3), imm, 16);
+      /* Use registers to get rt and rs fields */
+      set_register(op1, rt);
+      set_register(op2, rs);
+      strncpy(&temp_output[0], imm, 16);
+      strncpy(&temp_output[16], rt, 5);
+      strncpy(&temp_output[21], rs, 5);
+      /* Set the correct instruction opcodes */
+      if (strcmp(inst, "lw") == 0) { 
+        strncpy(&temp_output[26], "110001", 6);      
+      } else if (strcmp(inst, "sw") == 0) { 
+        strncpy(&temp_output[26], "110101", 6);      
+      } else if (strcmp(inst, "beq") == 0) { 
+        strncpy(&temp_output[26], "001000", 6);      
+      } else if (strcmp(inst, "addi") == 0) { 
+        strncpy(&temp_output[26], "000100", 6);      
+      }
+    } else if (strcmp(inst, "and") == 0 ||
+               strcmp(inst, "or") == 0 ||
+               strcmp(inst, "add") == 0 ||
+               strcmp(inst, "sub") == 0 ||
+               strcmp(inst, "slt") == 0 ||
+               strcmp(inst, "jr") == 0) {
+      /* R-type instruction format */
+      /* Use registers to get rt, rd, rs fields */
+      set_register(op1, rd);
+      set_register(op2, rs);
+      set_register(op3, rt);
+      /* set the correct instruction opcodes */
+      if (strcmp(inst, "and") == 0) { 
+        strncpy(&temp_output[0], "001001", 6);
+      } else if (strcmp(inst, "or") == 0) { 
+        strncpy(&temp_output[0], "101001", 6);
+      } else if (strcmp(inst, "add") == 0) { 
+        strncpy(&temp_output[0], "000001", 6);
+      } else if (strcmp(inst, "sub") == 0) { 
+        strncpy(&temp_output[0], "010001", 6);
+      } else if (strcmp(inst, "slt") == 0) { 
+        strncpy(&temp_output[0], "010101", 6);
+      } else if (strcmp(inst, "jr") == 0) { 
+        strncpy(&temp_output[0], "000100", 6);
+      }
+      /* set the correct instruction funct */
+      strncpy(&temp_output[6], "00000", 5);
+      strncpy(&temp_output[11], rd, 5);
+      strncpy(&temp_output[16], rt, 5);
+      strncpy(&temp_output[21], rs, 5);
+      strncpy(&temp_output[26], "000000", 6);      
+    } else if (strcmp(inst, "j") == 0 ||
+               strcmp(inst, "jal") == 0) { 
+      /* J-type instruction format */
+      /* Convert immediate field and jump address field to binary */
+      convert_to_binary_char(atoi(op1), address, 26);
+      strncpy(&temp_output[0], address, 26);
+      /* set the correct instruction opcodes */
+      if (strcmp(inst, "j") == 0) {
+        strncpy(&temp_output[26], "010000", 6);      
+      } else if (strcmp(inst, "jal") == 0) {
+        strncpy(&temp_output[26], "110000", 6);      
+      }
+    }
+    
+    for (int i = 0; i < 32; ++i)
+      output[i] = (temp_output[i] == '1' ? TRUE : FALSE); 
+    
+/* FOR DEBUGGING */
+/*
+    for (int i = 31; i >= 0; --i) {
+       printf("%d", output[i]);
+    }
+    printf("\n");
+*/
+
+    Write_Instruction_Memory(instruction_count, output);
+
+    // incremement instruction counter
+    instruction_count++;
   }
   
+#pragma GCC diagnostic pop
   return instruction_count;
 }
 
@@ -283,6 +421,11 @@ void print_state()
   printf("\n");
 }
 
+void Write_Instruction_Memory(int instruction_count, BIT* instruction_code)
+/* Write the instruction code to register memory */
+{
+  copy_bits(instruction_code, MEM_Instruction[instruction_count]);
+}
 
 /******************************************************************************/
 /* Functions that you will implement */
@@ -323,7 +466,14 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
   // Input: one 5-bit register address, data to write, and control bit
   // Output: None, but will modify register file
   // Note: Implementation will again be similar to those above
-  
+
+  int register_number = binary_to_integer(WriteRegister); 
+
+  // how do I do this without using an if statement?
+  /*
+  if (RegWrite) 
+    (RegWrite, copy_bits(WriteData, MEM_Register[register_number]));
+  */
 }
 
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
@@ -375,7 +525,7 @@ void updateState()
   // Memory - read/write data memory
   // Write Back - write to the register file
   // Update PC - determine the final PC value for the next instruction
-  
+
 }
 
 
