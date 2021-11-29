@@ -354,8 +354,8 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   char temp_o2[32]; 
   decoder5(ReadRegister1,temp_o);
   decoder5(ReadRegister2,temp_o2);
-  copy_bits(MEM_Register[to],ReadData1);
-  copy_bits(MEM_Register[to2],ReadData2);
+  copy_bits(MEM_Register[temp_o],ReadData1);
+  copy_bits(MEM_Register[temp_o2],ReadData2);
 }
 
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
