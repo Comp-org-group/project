@@ -208,6 +208,24 @@ int binary_to_integer(BIT* A)
   return (int)a;
 }
 
+//1-bit adder
+void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
+{
+  *CarryOut = or_gate3(and_gate(A,B),and_gate(A,CarryIn),and_gate(B,CarryIn));
+  *Sum = or_gate3(and_gate(and_gate(A,B),CarryIn),and_gate(xor_gate(A,B), not_gate(CarryIn)),and_gate(xor_gate(A,CarryIn), not_gate(B)));
+}
+
+//1-bit ALU
+void ALU1(BIT A, BIT B, BIT Binvert, BIT CarryIn, BIT Less, 
+  BIT Op0, BIT Op1, BIT* Result, BIT* CarryOut, BIT* Set)
+{
+  BIT temp = multiplexor2(Binvert, B, not_gate(B));
+  adder1(A, temp, CarryIn, CarryOut, &temp);
+  *Result = multiplexor4(Op0, Op1, and_gate(A,B), or_gate(A,B), temp, Less);
+  *Set = temp;
+}
+
+
 
 /******************************************************************************/
 /* Parsing functions */
@@ -336,13 +354,39 @@ void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
   
 }
 
+/*
+ALUControl[0] = NOR
+ALUControl[1] = Binvert/CarryIn
+
+ALUControl[2],ALUControl[3] = Operation 
+00 = AND
+01 = OR
+10 = ADD/SUB
+11 = Less
+*/
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
 {   
-  // TODO: Implement 32-bit ALU
-  // Input: 4-bit ALUControl, two 32-bit inputs
-  // Output: 32-bit result, and zero flag big
-  // Note: Can re-use prior implementations (but need new circuitry for zero)
-  
+	BIT Less = 0; //Carries the result of subtraction from ALU 31 to ALU 0 for Set Less Than
+	BIT SET; //Used as a placeholder for ALUs 0-30
+	BIT Carry; //Used to pass carryOut of an ALU to carryIn of the next
+
+	//ALU 0 takes carrtIn from ALUControl
+	ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[3], ALUControl[2], Result, &Carry, &SET);
+	*Zero = not_gate(Result[0]);
+	
+	//ALUs 1-30 are identical
+	for(int i = 1; i < 31; i++)
+	{
+		ALU1(Input1[i], Input2[i], ALUControl[1], Carry, Less, ALUControl[3], ALUControl[2], Result+i, &Carry, &SET);
+		*Zero = and_gate(*Zero, not_gate(Result[i])); //Zero will be true only if all the Result bits are 0
+	}
+	
+	//ALU 31 sets the Less variable
+	ALU1(Input1[31], Input2[31], ALUControl[1], Carry, Less, ALUControl[3], ALUControl[2], Result+31, &Carry, &Less);
+	*Zero = and_gate(*Zero, not_gate(Result[31]));
+	//Run ALU 0 one final time for Set Less Than
+	ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[3], ALUControl[2], Result, &Carry, &SET);
+	*Zero = and_gate(*Zero, not_gate(Result[0]));
 }
 
 void Data_Memory(BIT MemWrite, BIT MemRead, 
