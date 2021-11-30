@@ -461,19 +461,19 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
 }
 
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
+/*
+   Implements register write functionality
+   Input: one 5-bit register address, data to write, and control bit
+   Output: None, but will modify register file
+*/
 {
-  // TODO: Implement register write functionality
-  // Input: one 5-bit register address, data to write, and control bit
-  // Output: None, but will modify register file
-  // Note: Implementation will again be similar to those above
+  // convert register binary number to an integer
+  int register_number = binary_to_integer(WriteRegister);
 
-  int register_number = binary_to_integer(WriteRegister); 
-
-  // how do I do this without using an if statement?
-  /*
-  if (RegWrite) 
-    (RegWrite, copy_bits(WriteData, MEM_Register[register_number]));
-  */
+  // call multiplexor to put WriteData into Register Memory
+  // if the RegWrite control bit is set
+  multiplexor2_32(RegWrite,  MEM_Register[register_number], WriteData,
+                      MEM_Register[register_number]);
 }
 
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
