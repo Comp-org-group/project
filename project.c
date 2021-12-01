@@ -409,7 +409,7 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
   int i=0;
   for(i=0;i<5;i++){
     inp[i]=Address[i];  
-    printf("%d ADDRESS[i=%d]\n",Address[i],i );
+    // printf("%d ADDRESS[i=%d]\n",Address[i],i ); // for debugging
   }
   
   decoder5(inp,decoded);
@@ -424,19 +424,21 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
     --i;
   ++j;
   }
-  printf("instr_mem_arr_add = %d\n",instr_mem_arr_add);
+  // printf("instr_mem_arr_add = %d\n",instr_mem_arr_add);  // for debugging
 
 
   //When MEMWrite==1 
-  // copy_bits(WriteData,MEM_Data[instr_mem_arr_add]);
+  if(MEMWrite){
+    copy_bits(WriteData,MEM_Data[instr_mem_arr_add]);  
+  }
+  
 
 
 
   //When MEMRead==1
-  // copy_bits(MEM_Data[instr_mem_arr_add],ReadData);
-
-
-}
+  if(MEMRead){
+    copy_bits(MEM_Data[instr_mem_arr_add],ReadData);
+  }
   
 }
 
