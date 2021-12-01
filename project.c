@@ -344,6 +344,16 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
   
 }
 
+/*
+ALUOp = 00 -> ADD -> ALUControl = 0010
+ALUOp = 01 -> SUB -> ALUControl = 0110
+ALUOp = 10 -> R-Type:
+funct = 100000 -> ADD -> ALUControl = 0010
+funct = 100010 -> SUB -> ALUControl = 0110
+funct = 100100 -> AND -> ALUControl = 0000
+funct = 100101 -> OR  -> ALUControl = 0001
+funct = 101010 -> SLT -> ALUControl = 0111
+*/
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
 {
   // TODO: Implement ALU Control circuit
@@ -352,6 +362,10 @@ void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
   // Output:4-bit ALUControl for input into the ALU
   // Note: Can use SOP or similar approaches to determine bits
   
+  ALUControl[0] = 0; //We are not implementing NOR, this is always 0;
+  ALUControl[1] = or_gate(ALUOp[1], and_gate(ALUOp[0], funct[1]));
+  ALUControl[2] = or_gate(not_gate(ALUOp[0]), not_gate(funct[2]));
+  ALUControl[3] = and_gate(ALUOp[0], or_gate(funct[0], funct[3]));
 }
 
 /*
