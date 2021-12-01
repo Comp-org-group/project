@@ -361,7 +361,7 @@ void Extend_Sign16(BIT* Input, BIT* Output)
     Output[i] = Input[i];
   }
   for (int i=0;i<16;i++) {
-    Output[i+16] = or_gate(Output[i+16], Input[15]);
+    Output[i+16] = Input[15];
   }
 }
 
