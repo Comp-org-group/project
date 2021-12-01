@@ -396,6 +396,47 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
   // Input: 32-bit address, control flags for read/write, and data to write
   // Output: data read if processing a lw instruction
   // Note: Implementation similar as above
+    /** W/out using if statements
+    Step 1 - then covert Address to decimal_address then MEM_Data[decimal_Address]=WriteData or ReadData= 
+    Step 2 - if MemWrite==1, (Do this w/out if??) {Use a mux??}
+    Step 3 - If lw (i.e. MEMRead==1) Read Data = MEM_Instruction[decimal_Address] {USE a mux}
+
+  **/
+
+  //get what loc in array
+  BIT decoded[32]={FALSE};
+  BIT inp[5]={FALSE};
+  int i=0;
+  for(i=0;i<5;i++){
+    inp[i]=Address[i];  
+    printf("%d ADDRESS[i=%d]\n",Address[i],i );
+  }
+  
+  decoder5(inp,decoded);
+  print_binary(decoded);
+  printf("\n");
+  int instr_mem_arr_add = 0;
+  int j =0;
+  i=31;
+  while(j<32){
+    instr_mem_arr_add += i*decoded[i];
+    // printf("imad = %d, j=%d decoded[i=%d]=%d\n",instr_mem_arr_add,j,i,decoded[i]);  // for debugging
+    --i;
+  ++j;
+  }
+  printf("instr_mem_arr_add = %d\n",instr_mem_arr_add);
+
+
+  //When MEMWrite==1 
+  // copy_bits(WriteData,MEM_Data[instr_mem_arr_add]);
+
+
+
+  //When MEMRead==1
+  // copy_bits(MEM_Data[instr_mem_arr_add],ReadData);
+
+
+}
   
 }
 
