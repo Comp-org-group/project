@@ -363,9 +363,9 @@ void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
   // Note: Can use SOP or similar approaches to determine bits
   
   ALUControl[0] = 0; //We are not implementing NOR, this is always 0;
-  ALUControl[1] = or_gate(ALUOp[1], and_gate(ALUOp[0], funct[1]));
-  ALUControl[2] = or_gate(not_gate(ALUOp[0]), not_gate(funct[2]));
-  ALUControl[3] = and_gate(ALUOp[0], or_gate(funct[0], funct[3]));
+  ALUControl[1] = or_gate(ALUOp[1], and_gate(ALUOp[0], funct[4]));
+  ALUControl[2] = or_gate(not_gate(ALUOp[0]), not_gate(funct[3]));
+  ALUControl[3] = and_gate(ALUOp[0], or_gate(funct[5], funct[2]));
 }
 
 /*
