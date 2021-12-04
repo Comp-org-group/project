@@ -186,8 +186,12 @@ void print_binary(BIT* A)
 }
 
 void convert_to_binary(int a, BIT* A, int length)
+/* convert integer to 2's complement BIT representation */
 {
-  /* Use your implementation from Lab 6 */
+  // Note: A[0] is least significant bit and A[31] is most significant bit
+  convert_to_binary_char(a, A, length);
+  for (int i = 0; i < length; ++i)
+      A[i] = (A[i] == '1' ? TRUE : FALSE); 
 }
 
 void convert_to_binary_char(int a, char* A, int length)
