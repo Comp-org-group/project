@@ -353,6 +353,7 @@ funct = 100010 -> SUB -> ALUControl = 0110
 funct = 100100 -> AND -> ALUControl = 0000
 funct = 100101 -> OR  -> ALUControl = 0001
 funct = 101010 -> SLT -> ALUControl = 0111
+//NOTE: funct in little-endian
 */
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
 {
