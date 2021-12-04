@@ -57,7 +57,6 @@ int binary_to_integer(BIT* A);
 
 int get_instructions(BIT Instructions[][32]);
 
-void Write_Instruction_Memory(int instruction_count, BIT* instruction_code);
 void Instruction_Memory(BIT* ReadAddress, BIT* Instruction);
 void Control(BIT* OpCode,
   BIT* RegDst, BIT* Jump, BIT* Branch, BIT* MemRead, BIT* MemToReg,
@@ -187,10 +186,8 @@ void print_binary(BIT* A)
 }
 
 void convert_to_binary(int a, BIT* A, int length)
-/* convert integer to 2's complement BIT representation */
 {
-  // Note: A[0] is least significant bit and A[31] is most significant bit
-  convert_to_binary_char(a, A, 32);
+  /* Use your implementation from Lab 6 */
 }
 
 void convert_to_binary_char(int a, char* A, int length)
@@ -271,8 +268,6 @@ int get_instructions(BIT Instructions[][32])
   char line[256] = {0};
   int instruction_count = 0;
   while (fgets(line, 256, stdin) != NULL) {        
-    BIT output[32] = {FALSE}; // the binary form of the instruction
-
     char inst[256] = {0};
     char op1[256] = {0};
     char op2[256] = {0};
@@ -356,18 +351,8 @@ int get_instructions(BIT Instructions[][32])
     }
     
     for (int i = 0; i < 32; ++i)
-      output[i] = (temp_output[i] == '1' ? TRUE : FALSE); 
+      Instructions[instruction_count][i] = (temp_output[i] == '1' ? TRUE : FALSE); 
     
-/* FOR DEBUGGING */
-/*
-    for (int i = 31; i >= 0; --i) {
-       printf("%d", output[i]);
-    }
-    printf("\n");
-*/
-
-    Write_Instruction_Memory(instruction_count, output);
-
     // incremement instruction counter
     instruction_count++;
   }
@@ -421,11 +406,6 @@ void print_state()
   printf("\n");
 }
 
-void Write_Instruction_Memory(int instruction_count, BIT* instruction_code)
-/* Write the instruction code to register memory */
-{
-  copy_bits(instruction_code, MEM_Instruction[instruction_count]);
-}
 
 /******************************************************************************/
 /* Functions that you will implement */
@@ -461,19 +441,20 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
 }
 
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
+/*  
+   Implements register write functionality 
+   Input: one 5-bit register address, data to write, and control bit
+   Output: None, but will modify register file
+*/
 {
-  // TODO: Implement register write functionality
-  // Input: one 5-bit register address, data to write, and control bit
-  // Output: None, but will modify register file
-  // Note: Implementation will again be similar to those above
-
+  // convert register binary number to an integer
   int register_number = binary_to_integer(WriteRegister); 
 
-  // how do I do this without using an if statement?
-  /*
-  if (RegWrite) 
-    (RegWrite, copy_bits(WriteData, MEM_Register[register_number]));
-  */
+  // call multiplexor to put WriteData into Register Memory
+  // if the RegWrite control bit is set
+  multiplexor2_32(RegWrite,  MEM_Register[register_number], WriteData, 
+                      MEM_Register[register_number]);
+
 }
 
 void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
@@ -525,7 +506,7 @@ void updateState()
   // Memory - read/write data memory
   // Write Back - write to the register file
   // Update PC - determine the final PC value for the next instruction
-
+  
 }
 
 
