@@ -224,6 +224,19 @@ int binary_to_integer(BIT* A)
   return (int)a;
 }
 
+int binary_to_integer_l(BIT* A, int length)
+{
+  unsigned a = 0;
+  unsigned mult = 1;
+  
+  for (int i = 0; i < length; ++i) {
+    a += A[i]*mult;
+    mult *= 2;
+  }
+  
+  return (int)a;
+}
+
 //1-bit adder
 void adder1(BIT A, BIT B, BIT CarryIn, BIT* CarryOut, BIT* Sum)
 {
@@ -459,7 +472,10 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   // Input: two 5-bit register addresses
   // Output: the values of the specified registers in ReadData1 and ReadData2
   // Note: Implementation will be very similar to instruction memory circuit
-  
+  int binary1 = binary_to_integer_l(ReadRegister1, 5);
+  int binary2 = binary_to_integer_l(ReadRegister2, 5);
+  copy_bits(MEM_Register[binary1], ReadData1);
+  copy_bits(MEM_Register[binary2], ReadData2);
 }
 
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
