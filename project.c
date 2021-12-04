@@ -409,20 +409,20 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
   int i=0;
   for(i=0;i<5;i++){
     inp[i]=Address[i];  
-    // printf("%d ADDRESS[i=%d]\n",Address[i],i ); // for debugging
+    // printf("%d ADDRESS[i=%d]\n",Address[i],i );
   }
   
   decoder5(inp,decoded);
-  print_binary(decoded);
-  printf("\n");
+  // print_binary(decoded); // for debugging
+  // printf("\n"); // for debugging
   int instr_mem_arr_add = 0;
-  int j =0;
+  // int j =0;
   i=31;
-  while(j<32){
+  while(i>=0){
     instr_mem_arr_add += i*decoded[i];
     // printf("imad = %d, j=%d decoded[i=%d]=%d\n",instr_mem_arr_add,j,i,decoded[i]);  // for debugging
     --i;
-  ++j;
+  
   }
   // printf("instr_mem_arr_add = %d\n",instr_mem_arr_add);  // for debugging
 
