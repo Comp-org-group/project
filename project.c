@@ -332,17 +332,18 @@ void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
   // print_binary(decoded); // for debugging
   // printf("\n"); // for debugging
   int instr_mem_arr_add = 0;
-  int j =0;
   i=31;
-  while(j<32){
+  while(i>=0){
     instr_mem_arr_add += i*decoded[i];
     // printf("imad = %d, j=%d decoded[i=%d]=%d\n",instr_mem_arr_add,j,i,decoded[i]); // for debugging
+    // printf("i %d instr_mem_arr_add %d \n",i, instr_mem_arr_add ); // for debugging
     --i;
-  ++j;
   }
+
   // printf("instr_mem_arr_add = %d\n",instr_mem_arr_add); // for debugging
   copy_bits(MEM_Instruction[instr_mem_arr_add],Instruction);
   // print_binary(Instruction); // for debugging
+  // printf("\n"); // for debugging
 
   
 }
