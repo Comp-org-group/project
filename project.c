@@ -213,15 +213,7 @@ void convert_to_binary_char(int a, char* A, int length)
   
 int binary_to_integer(BIT* A)
 {
-  unsigned a = 0;
-  unsigned mult = 1;
-  
-  for (int i = 0; i < 32; ++i) {
-    a += A[i]*mult;
-    mult *= 2;
-  }
-  
-  return (int)a;
+  binary_to_integer_l(A, 32);
 }
 
 int binary_to_integer_l(BIT* A, int length)
