@@ -332,9 +332,16 @@ void Control(BIT* OpCode,
   // Input: opcode field from the instruction
   // OUtput: all control lines get set 
   // Note: Can use SOP or similar approaches to determine bits
-  &RegDst = and_gate(and_gate3(OpCode[0], OpCode[1], OpCode[2]), and_gate3(OpCode[3], OpCode[4], OpCode[5]));
-  
-  ALUOp[0] = and_gate(and_gate3(OpCode[0], OpCode[1], OpCode[2]), and_gate3(OpCode[3], OpCode[4], OpCode[5]));
+	*RegDst = and_gate(and_gate3(not_gate(OpCode[0]), not_gate(OpCode[1]), not_gate(OpCode[2])), and_gate3(not_gate(OpCode[3]), not_gate(OpCode[4]), not_gate(OpCode[5])));
+	*Jump = and_gate(OpCode[1], not_gate(OpCode[5]));
+	*Branch = OpCode[2];
+	*MemRead = and_gate3(OpCode[1], not_gate(OpCode[3]), OpCode[5]);
+	*MemToReg = and_gate3(OpCode[1], not_gate(OpCode[3]), OpCode[5]);
+	ALUOp[0] = and_gate(and_gate3(not_gate(OpCode[0]), not_gate(OpCode[1]), not_gate(OpCode[2])), and_gate3(not_gate(OpCode[3]), not_gate(OpCode[4]), not_gate(OpCode[5])));
+	ALUOp[1] = OpCode[2];
+	*MemWrite = and_gate(OpCode[1], OpCode[3]);
+	*ALUSrc = or_gate(OpCode[3], OpCode[5]);
+	*RegWrite = or_gate(and_gate(not_gate(OpCode[1]), not_gate(OpCode[2])), and_gate(not_gate(OpCode[3]), OpCode[5]));
 }
 
 void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
