@@ -321,7 +321,7 @@ void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
  Branch Eq | 001000 |    0   |   0  |    1   |    0    |     0    |   01  |    0     |    0   |    0
  Addi      | 000100 |    0   |   0  |    0   |    0    |     0    |   00  |    0     |    1   |    1
  Jump      | 010000 |    0   |   1  |    0   |    0    |     0    |   00  |    0     |    0   |    0
- J & Link  | 110000 |    0   |   1  |    0   |    0    |     0    |   00  |    0     |    0   |    0
+ J & Link  | 110000 |    0   |   1  |    0   |    0    |     0    |   00  |    0     |    0   |    1
  Note: *Opcode in little-endian
 */
 void Control(BIT* OpCode,
@@ -341,7 +341,7 @@ void Control(BIT* OpCode,
 	ALUOp[1] = OpCode[2];
 	*MemWrite = and_gate(OpCode[1], OpCode[3]);
 	*ALUSrc = or_gate(OpCode[3], OpCode[5]);
-	*RegWrite = or_gate(and_gate(not_gate(OpCode[1]), not_gate(OpCode[2])), and_gate(not_gate(OpCode[3]), OpCode[5]));
+	*RegWrite = or_gate(and_gate(not_gate(OpCode[1]), not_gate(OpCode[2])), and_gate(not_gate(OpCode[3]), OpCode[0]));
 }
 
 void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
