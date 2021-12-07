@@ -404,6 +404,8 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
   **/
 
   //get what loc in array
+  BIT OutData[32]={FALSE};
+  BIT RData[32]={FALSE};
   BIT decoded[32]={FALSE};
   BIT inp[5]={FALSE};
   int i=0;
@@ -426,19 +428,16 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
   }
   // printf("instr_mem_arr_add = %d\n",instr_mem_arr_add);  // for debugging
 
+  //if MEMWrite == 0 then, write the existing value again
+  multiplexor2_32(MemWrite,MEM_Data[instr_mem_arr_add],WriteData,OutData); 
+  copy_bits(OutData,MEM_Data[instr_mem_arr_add]);
 
-  //When MEMWrite==1 
-  if(MEMWrite){
-    copy_bits(WriteData,MEM_Data[instr_mem_arr_add]);  
-  }
+
+
+  //if MemRead==0, returns ZERO but shouldn't matter as MemToReg is not going to take this as an input
+  multiplexor2_32(MemRead,ZERO,MEM_Data[instr_mem_arr_add],RData);
+  copy_bits(RData,ReadData);
   
-
-
-
-  //When MEMRead==1
-  if(MEMRead){
-    copy_bits(MEM_Data[instr_mem_arr_add],ReadData);
-  }
   
 }
 
