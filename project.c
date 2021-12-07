@@ -443,6 +443,40 @@ void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
   // Input: 32-bit instruction address
   // Output: 32-bit binary instruction
   // Note: Useful to use a 5-to-32 decoder here
+
+    /** PC is project which is a binary num
+     Q1. ReadAddress = PC
+    
+  Q2. What is PC?
+    - 32 bits
+    - (if PC = 0,1,2,...n) can do a conver to binary to get decimal -> then use MEM_instruction[decimal_PC] to get Instruction
+  **/
+  
+  BIT decoded[32]={FALSE};
+  BIT inp[5]={FALSE};
+  int i=0;
+  for(i=0;i<5;i++){
+    inp[i]=ReadAddress[i];  
+    // printf("%d RESULT[i=%d]\n",ReadAddress[i],i ); // for debugging
+  }
+  
+  decoder5(inp,decoded);
+  // print_binary(decoded); // for debugging
+  // printf("\n"); // for debugging
+  int instr_mem_arr_add = 0;
+  i=31;
+  while(i>=0){
+    instr_mem_arr_add += i*decoded[i];
+    // printf("imad = %d, j=%d decoded[i=%d]=%d\n",instr_mem_arr_add,j,i,decoded[i]); // for debugging
+    // printf("i %d instr_mem_arr_add %d \n",i, instr_mem_arr_add ); // for debugging
+    --i;
+  }
+
+  // printf("instr_mem_arr_add = %d\n",instr_mem_arr_add); // for debugging
+  copy_bits(MEM_Instruction[instr_mem_arr_add],Instruction);
+  // print_binary(Instruction); // for debugging
+  // printf("\n"); // for debugging
+
   
 }
 
