@@ -646,7 +646,7 @@ void updateState()
   JumpDest[0] = FALSE, JumpDest[1] = FALSE;
   multiplexor2_32(Jump, BranchMuxRes, JumpDest, PC);
   //JrDec == func == 000010, and then mux if it is 1
-  BIT JrDec = and_gate(and_gate3(not_gate(func[0]), func[1], not_gate(func[2])), and_gate3(not_gate(func[3]), not_gate(func[4]), not_gate(func[5])));
+  BIT JrDec = and_gate3(RegDst, and_gate3(not_gate(func[0]), func[1], not_gate(func[2])), and_gate3(not_gate(func[3]), not_gate(func[4]), not_gate(func[5])));
   multiplexor2_32(JrDec, PC, rData1, PC);
 
   //Write Back
