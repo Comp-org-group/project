@@ -242,6 +242,26 @@ void ALU1(BIT A, BIT B, BIT Binvert, BIT CarryIn, BIT Less,
   *Set = temp;
 }
 
+void ALU32(BIT* A, BIT* B, BIT Binvert, BIT CarryIn, BIT Op0, BIT Op1, BIT* Result, BIT* CarryOut)
+{
+  // TODO: implement a 32-bit ALU
+  // You'll need to essentially implement a 32-bit ripple adder here
+  // See slide "New 32-bit ALU" in csci2500-f21-ch03a-slides.pdf
+
+  BIT Less = FALSE;
+  BIT Set = FALSE;
+  ALU1(A[0], B[0], Binvert, CarryIn, Less, 
+    Op0, Op1, &Result[0], CarryOut, &Set);
+  for (int i = 1; i < 32; ++i) {
+    ALU1(A[i], B[i], Binvert, *CarryOut, Less, 
+      Op0, Op1, &Result[i], CarryOut, &Set);
+  }
+  
+  Less = Set;
+  ALU1(A[0], B[0], Binvert, CarryIn, Less, 
+    Op0, Op1, &Result[0], CarryOut, &Set);
+}
+
 void decoder3(BIT* I, BIT EN, BIT* O)
 {
   //3-to-8 decoder using gates
@@ -715,10 +735,11 @@ void updateState()
   
   //Fetch
   BIT instruction[32] = {FALSE}; // the output variable
+  BIT CO[32]={FALSE};
+  BIT result[32]={FALSE};
   Instruction_Memory(PC, instruction); //to get instruction
-  int tempPC = binary_to_integer(PC); // convert PC to int add 1
-  tempPC++; 
-  convert_to_binary_char(tempPC, PC, 32); // and then convert back to binary
+  ALU32(PC,ONE,0,0,0,1,result,CO);
+  copy_bits(result,PC);
 
   //Decode
   BIT opcode[6] = {FALSE};  // the input variable
