@@ -783,9 +783,7 @@ void updateState()
   copy_bits(result,PC);
   // convert_to_binary_char(tempPC, PC, 32); // and then convert back to binary
   // printf("%d\n",tempPC);
-  // printf("PC\n");
-  // print_binary(PC);
-  // printf("\n");
+  // 
   //Decode
   BIT opcode[6] = {FALSE};  // the input variable
   for (int i = 26; i < 32; i++){
@@ -849,9 +847,16 @@ void updateState()
   // JumpDest[0] = FALSE, JumpDest[1] = FALSE;
   multiplexor2_32(Jump, PC, JumpDest, PC);
   //JrDec == func == 000010, and then mux if it is 1
-  BIT JrDec = and_gate3(RegDst, and_gate3(not_gate(func[0]), func[1], not_gate(func[2])), and_gate3(not_gate(func[3]), not_gate(func[4]), not_gate(func[5])));
-  multiplexor2_32(JrDec, PC, rData1, PC);
-
+  BIT JrDec = and_gate3(RegDst, instruction[3], not_gate(instruction[5]));
+  BIT trash;
+  BIT C[4] = {0,0,1,0};
+  BIT increment[32] = {FALSE};
+  increment[0] = 1;
+   ALU32(rData1,ONE,1,1,0,1,rData2,CO);
+  multiplexor2_32(JrDec, PC, rData2, PC);
+//printf("PC\n");
+  // print_binary(rData2);
+   //printf("\n");
   //Write Back
   BIT WriteData[32] = {FALSE};
   multiplexor2_32(MemToReg, ALURes, rData, WriteData);
