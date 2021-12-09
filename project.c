@@ -411,9 +411,14 @@ int get_instructions(BIT Instructions[][32])
                strcmp(inst, "jr") == 0) {
       /* R-type instruction format */
       /* Use registers to get rt, rd, rs fields */
+	  if(strcmp(inst, "jr") == 0)
+		set_register(op1, rs);
+	else
+	{
       set_register(op1, rd);
       set_register(op2, rs);
       set_register(op3, rt);
+	}
       /* set the correct instruction opcodes */
       if (strcmp(inst, "and") == 0) { 
         strncpy(&temp_output[0], "001001", 6);
