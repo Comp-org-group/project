@@ -783,9 +783,9 @@ void updateState()
   copy_bits(result,PC);
   // convert_to_binary_char(tempPC, PC, 32); // and then convert back to binary
   // printf("%d\n",tempPC);
-  printf("PC\n");
-  print_binary(PC);
-  printf("\n");
+  // printf("PC\n");
+  // print_binary(PC);
+  // printf("\n");
   //Decode
   BIT opcode[6] = {FALSE};  // the input variable
   for (int i = 26; i < 32; i++){
@@ -835,9 +835,9 @@ void updateState()
   BIT rData[32] = {FALSE};
   Data_Memory(MemWrite, MemRead, ALURes, rData2, rData);
   //for if you branch or not
-  BIT PCSrc = and_gate(Branch, Zero);
-  BIT BranchMuxRes[32] = {FALSE};
-  multiplexor2_32(PCSrc, PC, signExtended, BranchMuxRes);
+  // BIT PCSrc = and_gate(Branch, Zero);
+  // BIT BranchMuxRes[32] = {FALSE};
+  // multiplexor2_32(PCSrc, PC, signExtended, BranchMuxRes);
   BIT JumpDest[32] = {FALSE}; //the address of the destination of jump
   //last 4bits of PC+4(1 in this case) + the first 26bits of instruction + 00
   for (int i = 0; i < 4; i++){
@@ -846,8 +846,8 @@ void updateState()
   for (int i = 0; i < 26; i++){
     JumpDest[i] = instruction[i];
   }
-  JumpDest[0] = FALSE, JumpDest[1] = FALSE;
-  multiplexor2_32(Jump, BranchMuxRes, JumpDest, PC);
+  // JumpDest[0] = FALSE, JumpDest[1] = FALSE;
+  multiplexor2_32(Jump, PC, JumpDest, PC);
   //JrDec == func == 000010, and then mux if it is 1
   BIT JrDec = and_gate3(RegDst, and_gate3(not_gate(func[0]), func[1], not_gate(func[2])), and_gate3(not_gate(func[3]), not_gate(func[4]), not_gate(func[5])));
   multiplexor2_32(JrDec, PC, rData1, PC);
