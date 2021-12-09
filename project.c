@@ -318,8 +318,16 @@ int get_instructions(BIT Instructions[][32])
       /* Convert immediate field and jump address field to binary */
       convert_to_binary_char(atoi(op3), imm, 16);
       /* Use registers to get rt and rs fields */
+      if(strcmp(inst, "beq") == 0)
+	  {
+		set_register(op2, rt);
+		set_register(op1, rs);
+	  }
+	  else
+	  {
       set_register(op1, rt);
       set_register(op2, rs);
+	  }
       strncpy(&temp_output[0], imm, 16);
       strncpy(&temp_output[16], rt, 5);
       strncpy(&temp_output[21], rs, 5);
