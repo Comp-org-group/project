@@ -244,9 +244,7 @@ void ALU1(BIT A, BIT B, BIT Binvert, BIT CarryIn, BIT Less,
 
 void decoder3(BIT* I, BIT EN, BIT* O)
 {
-  // TODO: implement 3-to-8 decoder using gates
-  // See lecture slides, book, and/or online resources for logic designs
-  
+  //3-to-8 decoder using gates
   O[0] = and_gate3(not_gate(I[2]), not_gate(I[1]), not_gate(I[0]));
   O[1] = and_gate3(not_gate(I[2]), not_gate(I[1]), I[0]);
   O[2] = and_gate3(not_gate(I[2]), I[1], not_gate(I[0]));
@@ -270,9 +268,7 @@ void decoder3(BIT* I, BIT EN, BIT* O)
 
 void decoder5(BIT* I, BIT* O)
 {
-  // TODO: implement 5-to-32 decoder using 2-to-4 and 3-to-8 decoders
-  // https://fci.stafpu.bu.edu.eg/Computer%20Science/4887/crs-12801/Files/hw4-solution.pdf
-  
+   //5-to-32 decoder using 2-to-4 and 3-to-8 decoders
    BIT EN[4] = {FALSE};
    decoder2(I[3], I[4], &EN[0], &EN[1], &EN[2], &EN[3]);
    decoder3(I, EN[3], &O[24]);
