@@ -727,6 +727,10 @@ void updateState()
   }
   Control(opcode, &RegDst, &Jump, &Branch, &MemRead, &MemToReg, ALUOp, &MemWrite, &ALUSrc, &RegWrite); //determine inputs from the instruction, no ifs (use ands)
   BIT rReg1[5] = {FALSE}, rReg2[5] = {FALSE}, rData1[32] = {FALSE}, rData2[32] = {FALSE};
+  for (int i = 0; i < 6; i++){
+    rReg1[i] = instruction[i+21];
+    rReg2[i] = instruction[i+16];
+  }
   Read_Register(rReg1, rReg2, rData1, rData2);
   BIT immInstr[16] = {FALSE}; // input for sign extend
   for (int i = 0; i < 16; i++){
