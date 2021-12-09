@@ -479,7 +479,17 @@ void Instruction_Memory(BIT* ReadAddress, BIT* Instruction)
 
   
 }
-
+/* Truth Table:
+ Operation | Opcode | RegDst | Jump | Branch | MemRead | MemToReg | ALUOp | MemWrite | ALUSrc | RegWrite
+ R-Type    | 000000 |    1   |   0  |    0   |    0    |     0    |   10  |    0     |    0   |    1
+ Load Word | 110001 |    0   |   0  |    0   |    1    |     1    |   00  |    0     |    1   |    1
+ S. Word   | 110101 |    0   |   0  |    0   |    0    |     0    |   00  |    1     |    1   |    0
+ Branch Eq | 001000 |    0   |   0  |    1   |    0    |     0    |   01  |    0     |    0   |    0
+ Addi      | 000100 |    0   |   0  |    0   |    0    |     0    |   00  |    0     |    1   |    1
+ Jump      | 010000 |    0   |   1  |    0   |    0    |     0    |   00  |    0     |    0   |    0
+ J & Link  | 110000 |    0   |   1  |    0   |    0    |     0    |   00  |    0     |    0   |    1
+ Note: *Opcode in little-endian
+*/
 void Control(BIT* OpCode,
   BIT* RegDst, BIT* Jump, BIT* Branch, BIT* MemRead, BIT* MemToReg,
   BIT* ALUOp, BIT* MemWrite, BIT* ALUSrc, BIT* RegWrite)
@@ -488,7 +498,16 @@ void Control(BIT* OpCode,
   // Input: opcode field from the instruction
   // OUtput: all control lines get set 
   // Note: Can use SOP or similar approaches to determine bits
-  
+	*RegDst = and_gate(and_gate3(not_gate(OpCode[0]), not_gate(OpCode[1]), not_gate(OpCode[2])), and_gate3(not_gate(OpCode[3]), not_gate(OpCode[4]), not_gate(OpCode[5])));
+	*Jump = and_gate(OpCode[1], not_gate(OpCode[5]));
+	*Branch = OpCode[2];
+	*MemRead = and_gate3(OpCode[1], not_gate(OpCode[3]), OpCode[5]);
+	*MemToReg = and_gate3(OpCode[1], not_gate(OpCode[3]), OpCode[5]);
+	ALUOp[0] = and_gate(and_gate3(not_gate(OpCode[0]), not_gate(OpCode[1]), not_gate(OpCode[2])), and_gate3(not_gate(OpCode[3]), not_gate(OpCode[4]), not_gate(OpCode[5])));
+	ALUOp[1] = OpCode[2];
+	*MemWrite = and_gate(OpCode[1], OpCode[3]);
+	*ALUSrc = or_gate(OpCode[3], OpCode[5]);
+	*RegWrite = or_gate(and_gate(not_gate(OpCode[1]), not_gate(OpCode[2])), and_gate(not_gate(OpCode[3]), OpCode[0]));
 }
 
 void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
