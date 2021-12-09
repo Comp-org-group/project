@@ -54,6 +54,7 @@ void print_binary(BIT* A);
 void convert_to_binary(int a, BIT* A, int length);
 void convert_to_binary_char(int a, char* A, int length);
 int binary_to_integer(BIT* A);
+int binary_to_integer_l(BIT* A, int length);
 
 int get_instructions(BIT Instructions[][32]);
 
@@ -213,7 +214,7 @@ void convert_to_binary_char(int a, char* A, int length)
   
 int binary_to_integer(BIT* A)
 {
-  binary_to_integer_l(A, 32);
+  return binary_to_integer_l(A, 32);
 }
 
 int binary_to_integer_l(BIT* A, int length)
@@ -568,7 +569,6 @@ void ALU_Control(BIT* ALUOp, BIT* funct, BIT* ALUControl)
 /*
 ALUControl[0] = NOR
 ALUControl[1] = Binvert/CarryIn
-
 ALUControl[2],ALUControl[3] = Operation 
 00 = AND
 01 = OR
@@ -577,27 +577,27 @@ ALUControl[2],ALUControl[3] = Operation
 */
 void ALU(BIT* ALUControl, BIT* Input1, BIT* Input2, BIT* Zero, BIT* Result)
 {   
-	BIT Less = 0; //Carries the result of subtraction from ALU 31 to ALU 0 for Set Less Than
-	BIT SET; //Used as a placeholder for ALUs 0-30
-	BIT Carry; //Used to pass carryOut of an ALU to carryIn of the next
+  BIT Less = 0; //Carries the result of subtraction from ALU 31 to ALU 0 for Set Less Than
+  BIT SET; //Used as a placeholder for ALUs 0-30
+  BIT Carry; //Used to pass carryOut of an ALU to carryIn of the next
 
-	//ALU 0 takes carrtIn from ALUControl
-	ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[3], ALUControl[2], Result, &Carry, &SET);
-	*Zero = not_gate(Result[0]);
-	
-	//ALUs 1-30 are identical
-	for(int i = 1; i < 31; i++)
-	{
-		ALU1(Input1[i], Input2[i], ALUControl[1], Carry, Less, ALUControl[3], ALUControl[2], Result+i, &Carry, &SET);
-		*Zero = and_gate(*Zero, not_gate(Result[i])); //Zero will be true only if all the Result bits are 0
-	}
-	
-	//ALU 31 sets the Less variable
-	ALU1(Input1[31], Input2[31], ALUControl[1], Carry, Less, ALUControl[3], ALUControl[2], Result+31, &Carry, &Less);
-	*Zero = and_gate(*Zero, not_gate(Result[31]));
-	//Run ALU 0 one final time for Set Less Than
-	ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[3], ALUControl[2], Result, &Carry, &SET);
-	*Zero = and_gate(*Zero, not_gate(Result[0]));
+  //ALU 0 takes carrtIn from ALUControl
+  ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[3], ALUControl[2], Result, &Carry, &SET);
+  *Zero = not_gate(Result[0]);
+  
+  //ALUs 1-30 are identical
+  for(int i = 1; i < 31; i++)
+  {
+    ALU1(Input1[i], Input2[i], ALUControl[1], Carry, Less, ALUControl[3], ALUControl[2], Result+i, &Carry, &SET);
+    *Zero = and_gate(*Zero, not_gate(Result[i])); //Zero will be true only if all the Result bits are 0
+  }
+  
+  //ALU 31 sets the Less variable
+  ALU1(Input1[31], Input2[31], ALUControl[1], Carry, Less, ALUControl[3], ALUControl[2], Result+31, &Carry, &Less);
+  *Zero = and_gate(*Zero, not_gate(Result[31]));
+  //Run ALU 0 one final time for Set Less Than
+  ALU1(Input1[0], Input2[0], ALUControl[1], ALUControl[1], Less, ALUControl[3], ALUControl[2], Result, &Carry, &SET);
+  *Zero = and_gate(*Zero, not_gate(Result[0]));
 }
 
 void Data_Memory(BIT MemWrite, BIT MemRead, 
@@ -676,6 +676,82 @@ void updateState()
   // Write Back - write to the register file
   // Update PC - determine the final PC value for the next instruction
   
+  //Fetch
+  BIT instruction[32] = {FALSE}; // the output variable
+  Instruction_Memory(PC, instruction); //to get instruction
+  int tempPC = binary_to_integer(PC); // convert PC to int add 1
+  tempPC++; 
+  convert_to_binary_char(tempPC, PC, 32); // and then convert back to binary
+
+  //Decode
+  BIT opcode[6] = {FALSE};  // the input variable
+  for (int i = 26; i < 32; i++){
+    opcode[i-26] = instruction[i];
+  }
+  Control(opcode, &RegDst, &Jump, &Branch, &MemRead, &MemToReg, ALUOp, &MemWrite, &ALUSrc, &RegWrite); //determine inputs from the instruction, no ifs (use ands)
+  BIT rReg1[5] = {FALSE}, rReg2[5] = {FALSE}, rData1[32] = {FALSE}, rData2[32] = {FALSE};
+  Read_Register(rReg1, rReg2, rData1, rData2);
+  BIT immInstr[16] = {FALSE}; // input for sign extend
+  for (int i = 0; i < 16; i++){
+    immInstr[i] = instruction[i];
+  }
+  BIT signExtended[32] = {FALSE};
+  Extend_Sign16(immInstr, signExtended); //address to go to if branch
+
+  //Execute
+  BIT func[6] = {FALSE}; // input function variable
+  for (int i = 0; i < 6; i++){
+    func[i] = instruction[i];
+  }
+  BIT ALUIn2[32] = {FALSE};
+  BIT ALURes[32] = {FALSE};
+  ALU_Control(ALUOp, func, ALUControl);
+  multiplexor2_32(ALUSrc, rData2, signExtended, ALUIn2);
+  ALU(ALUControl, rData1, ALUIn2, &Zero, ALURes);
+  //getting the writeregister for right back later for write back later
+  BIT WriteReg[5] = {FALSE}, WriteData1[5] = {FALSE}, WriteData2[5] = {FALSE};
+  for (int i = 0; i < 6; i++){
+    WriteData1[i] = instruction[i+16];
+    WriteData2[i] = instruction[i+11];
+  }
+  for (int i = 0; i < 6; i++){
+    WriteReg[i] = multiplexor2(RegDst, WriteData1[i], WriteData2[i]);
+  }
+  //for jal
+  BIT JalDst = and_gate(Jump, RegWrite);
+  BIT raReg[5] = {TRUE, TRUE, TRUE, TRUE, TRUE};
+  multiplexor2_32(JalDst, WriteReg, raReg, WriteReg);
+
+  //Memory
+  //load and stuff
+  BIT rData[32] = {FALSE};
+  Data_Memory(MemWrite, MemRead, ALURes, rData2, rData);
+  //for if you branch or not
+  BIT PCSrc = and_gate(Branch, Zero);
+  BIT BranchMuxRes[32] = {FALSE};
+  multiplexor2_32(PCSrc, PC, signExtended, BranchMuxRes);
+  BIT JumpDest[32] = {FALSE}; //the address of the destination of jump
+  //last 4bits of PC+4(1 in this case) + the first 26bits of instruction + 00
+  for (int i = 0; i < 3; i++){
+    JumpDest[i+28] = PC[i+28];
+  }
+  for (int i = 0; i < 26; i++){
+    JumpDest[i+2] = instruction[i];
+  }
+  JumpDest[0] = FALSE, JumpDest[1] = FALSE;
+  multiplexor2_32(Jump, BranchMuxRes, JumpDest, PC);
+  //JrDec == func == 000010, and then mux if it is 1
+  BIT JrDec = and_gate3(RegDst, and_gate3(not_gate(func[0]), func[1], not_gate(func[2])), and_gate3(not_gate(func[3]), not_gate(func[4]), not_gate(func[5])));
+  multiplexor2_32(JrDec, PC, rData1, PC);
+
+  //Write Back
+  BIT WriteData[32] = {FALSE};
+  multiplexor2_32(MemToReg, ALURes, rData, WriteData);
+  multiplexor2_32(JalDst, WriteData, PC, WriteData);
+  Write_Register(RegWrite, WriteReg, WriteData);
+
+  //Update PC
+  //did this in other places throughout the code
 }
 
 
@@ -702,4 +778,3 @@ int main()
 
   return 0;
 }
-
