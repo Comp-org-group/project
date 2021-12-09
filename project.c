@@ -214,15 +214,10 @@ void convert_to_binary_char(int a, char* A, int length)
   
 int binary_to_integer(BIT* A)
 {
-  return binary_to_integer_l(A, 32);
-}
-
-int binary_to_integer_l(BIT* A, int length)
-{
   unsigned a = 0;
   unsigned mult = 1;
   
-  for (int i = 0; i < length; ++i) {
+  for (int i = 0; i < 32; ++i) {
     a += A[i]*mult;
     mult *= 2;
   }
@@ -246,6 +241,46 @@ void ALU1(BIT A, BIT B, BIT Binvert, BIT CarryIn, BIT Less,
   *Result = multiplexor4(Op0, Op1, and_gate(A,B), or_gate(A,B), temp, Less);
   *Set = temp;
 }
+
+void decoder3(BIT* I, BIT EN, BIT* O)
+{
+  // TODO: implement 3-to-8 decoder using gates
+  // See lecture slides, book, and/or online resources for logic designs
+  
+  O[0] = and_gate3(not_gate(I[2]), not_gate(I[1]), not_gate(I[0]));
+  O[1] = and_gate3(not_gate(I[2]), not_gate(I[1]), I[0]);
+  O[2] = and_gate3(not_gate(I[2]), I[1], not_gate(I[0]));
+  O[3] = and_gate3(not_gate(I[2]), I[1], I[0]);
+  O[4] = and_gate3(I[2], not_gate(I[1]), not_gate(I[0]));
+  O[5] = and_gate3(I[2], not_gate(I[1]), I[0]);
+  O[6] = and_gate3(I[2], I[1], not_gate(I[0]));
+  O[7] = and_gate3(I[2], I[1], I[0]);
+  
+  O[0] = and_gate(EN, O[0]);
+  O[1] = and_gate(EN, O[1]);
+  O[2] = and_gate(EN, O[2]);
+  O[3] = and_gate(EN, O[3]);
+  O[4] = and_gate(EN, O[4]);
+  O[5] = and_gate(EN, O[5]);
+  O[6] = and_gate(EN, O[6]);
+  O[7] = and_gate(EN, O[7]);
+  
+  return;
+}
+
+void decoder5(BIT* I, BIT* O)
+{
+  // TODO: implement 5-to-32 decoder using 2-to-4 and 3-to-8 decoders
+  // https://fci.stafpu.bu.edu.eg/Computer%20Science/4887/crs-12801/Files/hw4-solution.pdf
+  
+   BIT EN[4] = {FALSE};
+   decoder2(I[3], I[4], &EN[0], &EN[1], &EN[2], &EN[3]);
+   decoder3(I, EN[3], &O[24]);
+   decoder3(I, EN[2], &O[16]);
+   decoder3(I, EN[1], &O[8]);
+   decoder3(I, EN[0], &O[0]);
+}
+
 
 
 
@@ -518,8 +553,12 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   // Input: two 5-bit register addresses
   // Output: the values of the specified registers in ReadData1 and ReadData2
   // Note: Implementation will be very similar to instruction memory circuit
-  int binary1 = binary_to_integer_l(ReadRegister1, 5);
-  int binary2 = binary_to_integer_l(ReadRegister2, 5);
+  BIT decoded1[32] = {FALSE};
+  BIT decoded2[32] = {FALSE};
+  decoder5(ReadRegister1, decoded1);
+  decoder5(ReadRegister2, decoded2);
+  int binary1 = binary_to_integer(decoded1);
+  int binary2 = binary_to_integer(decoded2);
   copy_bits(MEM_Register[binary1], ReadData1);
   copy_bits(MEM_Register[binary2], ReadData2);
 }
@@ -532,7 +571,9 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
 */
 {
   // convert register binary number to an integer
-  int register_number = binary_to_integer(WriteRegister); 
+  BIT decoded[32] = {FALSE};
+  decoder5(WriteRegister, decoded);
+  int register_number = binary_to_integer(decoded); 
 
   // call multiplexor to put WriteData into Register Memory
   // if the RegWrite control bit is set
