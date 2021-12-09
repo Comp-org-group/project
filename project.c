@@ -776,7 +776,7 @@ void updateState()
     WriteData1[i] = instruction[i+16];
     WriteData2[i] = instruction[i+11];
   }
-  for (int i = 0; i < 6; i++){
+  for (int i = 0; i < 5; i++){
     WriteReg[i] = multiplexor2(RegDst, WriteData1[i], WriteData2[i]);
   }
   //for jal
