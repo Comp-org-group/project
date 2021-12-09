@@ -770,7 +770,7 @@ void updateState()
   ALU_Control(ALUOp, func, ALUControl);
   multiplexor2_32(ALUSrc, rData2, signExtended, ALUIn2);
   ALU(ALUControl, rData1, ALUIn2, &Zero, ALURes);
-  //getting the writeregister for right back later for write back later
+  //getting the writeregister for write back later
   BIT WriteReg[5] = {FALSE}, WriteData1[5] = {FALSE}, WriteData2[5] = {FALSE};
   for (int i = 0; i < 5; i++){
     WriteData1[i] = instruction[i+16];
