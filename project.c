@@ -321,8 +321,8 @@ void set_register(char* input, char* output)
 /* convert register name to 5 bit instruction code */
 {
 // suppress -Wall warning
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wstringop-truncation"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
 
   if (strcmp(input, "zero") == 0)
     strncpy(output, "00000", 5);
@@ -343,7 +343,7 @@ void set_register(char* input, char* output)
   else if (strcmp(input, "ra") == 0)
     strncpy(output, "11111", 5);
 
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 }
 
 int get_instructions(BIT Instructions[][32])
@@ -352,8 +352,8 @@ int get_instructions(BIT Instructions[][32])
 /* Returns the total number of instructions */
 {
 // suppress -Wall warning
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wstringop-truncation"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
 
   char line[256] = {0};
   int instruction_count = 0;
@@ -460,7 +460,7 @@ int get_instructions(BIT Instructions[][32])
     instruction_count++;
   }
   
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
   return instruction_count;
 }
 
@@ -833,9 +833,12 @@ void updateState()
   BIT rData[32] = {FALSE};
   Data_Memory(MemWrite, MemRead, ALURes, rData2, rData);
   //for if you branch or not
-  // BIT PCSrc = and_gate(Branch, Zero);
-  // BIT BranchMuxRes[32] = {FALSE};
-  // multiplexor2_32(PCSrc, PC, signExtended, BranchMuxRes);
+  BIT PCSrc = and_gate(Branch, Zero);
+  BIT BranchMuxRes[32] = {FALSE};
+  //printf("PC\n");
+  // print_binary(rData2);
+   //printf("\n");
+  multiplexor2_32(PCSrc, PC, signExtended, BranchMuxRes);
   BIT JumpDest[32] = {FALSE}; //the address of the destination of jump
   //last 4bits of PC+4(1 in this case) + the first 26bits of instruction + 00
   for (int i = 0; i < 4; i++){
@@ -844,24 +847,27 @@ void updateState()
   for (int i = 0; i < 26; i++){
     JumpDest[i] = instruction[i];
   }
-  // JumpDest[0] = FALSE, JumpDest[1] = FALSE;
-  multiplexor2_32(Jump, PC, JumpDest, PC);
-  //JrDec == func == 000010, and then mux if it is 1
-  BIT JrDec = and_gate3(RegDst, instruction[3], not_gate(instruction[5]));
-  BIT trash;
-  BIT C[4] = {0,0,1,0};
-  BIT increment[32] = {FALSE};
-  increment[0] = 1;
-   ALU32(rData1,ONE,1,1,0,1,rData2,CO);
-  multiplexor2_32(JrDec, PC, rData2, PC);
-//printf("PC\n");
-  // print_binary(rData2);
-   //printf("\n");
-  //Write Back
+  
   BIT WriteData[32] = {FALSE};
   multiplexor2_32(MemToReg, ALURes, rData, WriteData);
   multiplexor2_32(JalDst, WriteData, PC, WriteData);
   Write_Register(RegWrite, WriteReg, WriteData);
+  
+  // JumpDest[0] = FALSE, JumpDest[1] = FALSE;
+  multiplexor2_32(Jump, BranchMuxRes, JumpDest, PC);
+  //JrDec == func == 000010, and then mux if it is 1
+  BIT JrDec = and_gate3(RegDst, instruction[3], not_gate(instruction[5]));
+  //BIT trash;
+  //BIT C[4] = {0,0,1,0};
+  //BIT increment[32] = {FALSE};
+  //increment[0] = 1;
+  // ALU32(rData1,ONE,1,1,0,1,rData2,CO);
+  multiplexor2_32(JrDec, PC, rData1, PC);
+//printf("PC\n");
+  // print_binary(rData2);
+   //printf("\n");
+  //Write Back
+ 
 
   //Update PC
   //did this in other places throughout the code
