@@ -766,7 +766,7 @@ void updateState()
   Control(opcode, &RegDst, &Jump, &Branch, &MemRead, &MemToReg, ALUOp, &MemWrite, &ALUSrc, &RegWrite); //determine inputs from the instruction, no ifs (use ands)
   BIT rReg1[5] = {FALSE}, rReg2[5] = {FALSE}, rData1[32] = {FALSE}, rData2[32] = {FALSE};
   
-  for (int i = 0; i < 5; i++){ //changed from 6 to 5 #####
+  for (int i = 0; i < 5; i++){
     rReg1[i] = instruction[i+21];
     rReg2[i] = instruction[i+16];
   }
@@ -790,11 +790,11 @@ void updateState()
   ALU(ALUControl, rData1, ALUIn2, &Zero, ALURes);
   //getting the writeregister for write back later
   BIT WriteReg[5] = {FALSE}, WriteData1[5] = {FALSE}, WriteData2[5] = {FALSE};
-  for (int i = 0; i < 5; i++){ //changed from 6 to 5 #####
+  for (int i = 0; i < 5; i++){
     WriteData1[i] = instruction[i+16];
     WriteData2[i] = instruction[i+11];
   }
-  for (int i = 0; i < 5; i++){ //changed from 6 to 5 #####
+  for (int i = 0; i < 5; i++){
     WriteReg[i] = multiplexor2(RegDst, WriteData1[i], WriteData2[i]);
   }
   //for jal
