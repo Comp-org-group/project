@@ -820,7 +820,6 @@ void updateState()
 
   multiplexor2_32(PCSrc, PC, result2, BranchMuxRes);
   BIT JumpDest[32] = {FALSE}; //the address of the destination of jump
-  //last 4bits of PC+4(1 in this case) + the first 26bits of instruction + 00
   for (int i = 0; i < 4; i++){
     JumpDest[i+27] = 0;
   }
