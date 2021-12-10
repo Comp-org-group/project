@@ -253,7 +253,6 @@ void convert_to_binary_char(int a, char* A, int length)
     }
   }
 }
-
 int binary_to_integer(BIT* A)
 {
   unsigned a = 0;
@@ -302,6 +301,41 @@ void ALU32(BIT* A, BIT* B, BIT Binvert, BIT CarryIn, BIT Op0, BIT Op1, BIT* Resu
   Less = Set;
   ALU1(A[0], B[0], Binvert, CarryIn, Less, 
     Op0, Op1, &Result[0], CarryOut, &Set);
+}
+
+void decoder3(BIT* I, BIT EN, BIT* O)
+{
+  //3-to-8 decoder using gates
+  O[0] = and_gate3(not_gate(I[2]), not_gate(I[1]), not_gate(I[0]));
+  O[1] = and_gate3(not_gate(I[2]), not_gate(I[1]), I[0]);
+  O[2] = and_gate3(not_gate(I[2]), I[1], not_gate(I[0]));
+  O[3] = and_gate3(not_gate(I[2]), I[1], I[0]);
+  O[4] = and_gate3(I[2], not_gate(I[1]), not_gate(I[0]));
+  O[5] = and_gate3(I[2], not_gate(I[1]), I[0]);
+  O[6] = and_gate3(I[2], I[1], not_gate(I[0]));
+  O[7] = and_gate3(I[2], I[1], I[0]);
+  
+  O[0] = and_gate(EN, O[0]);
+  O[1] = and_gate(EN, O[1]);
+  O[2] = and_gate(EN, O[2]);
+  O[3] = and_gate(EN, O[3]);
+  O[4] = and_gate(EN, O[4]);
+  O[5] = and_gate(EN, O[5]);
+  O[6] = and_gate(EN, O[6]);
+  O[7] = and_gate(EN, O[7]);
+  
+  return;
+}
+
+void decoder5(BIT* I, BIT* O)
+{
+   //5-to-32 decoder using 2-to-4 and 3-to-8 decoders
+   BIT EN[4] = {FALSE};
+   decoder2(I[3], I[4], &EN[0], &EN[1], &EN[2], &EN[3]);
+   decoder3(I, EN[3], &O[24]);
+   decoder3(I, EN[2], &O[16]);
+   decoder3(I, EN[1], &O[8]);
+   decoder3(I, EN[0], &O[0]);
 }
 
 
@@ -592,6 +626,7 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   BIT decoded2[32] = {FALSE};
   decoder5(ReadRegister1, decoded1);
   decoder5(ReadRegister2, decoded2);
+
   int arr_ind1 = 0;
   int arr_ind2 = 0;
   int i=31;
@@ -632,6 +667,7 @@ void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
     // printf("i %d instr_mem_arr_add %d \n",i, instr_mem_arr_add ); // for debugging
     --i;
   }
+
 
   // printf("instr_mem_arr_add = %d\n",instr_mem_arr_add); // for debugging
   // copy_bits(MEM_Instruction[instr_mem_arr_add],Instruction);
@@ -782,13 +818,10 @@ void updateState()
   BIT CO[32]={FALSE};
   BIT result[32]={FALSE};
   Instruction_Memory(PC, instruction); //to get instruction
-  // int tempPC = binary_to_integer(PC); // convert PC to int add 1
-  // tempPC++; 
+
   ALU32(PC,ONE,0,0,0,1,result,CO);
   copy_bits(result,PC);
-  // convert_to_binary_char(tempPC, PC, 32); // and then convert back to binary
-  // printf("%d\n",tempPC);
-  // 
+
   //Decode
   BIT opcode[6] = {FALSE};  // the input variable
   for (int i = 26; i < 32; i++){
@@ -796,8 +829,8 @@ void updateState()
   }
   Control(opcode, &RegDst, &Jump, &Branch, &MemRead, &MemToReg, ALUOp, &MemWrite, &ALUSrc, &RegWrite); //determine inputs from the instruction, no ifs (use ands)
   BIT rReg1[5] = {FALSE}, rReg2[5] = {FALSE}, rData1[32] = {FALSE}, rData2[32] = {FALSE};
-  
-  for (int i = 0; i < 5; i++){ //changed from 6 to 5 #####
+
+  for (int i = 0; i < 5; i++){ 
     rReg1[i] = instruction[i+21];
     rReg2[i] = instruction[i+16];
   }
@@ -819,13 +852,13 @@ void updateState()
   ALU_Control(ALUOp, func, ALUControl);
   multiplexor2_32(ALUSrc, rData2, signExtended, ALUIn2);
   ALU(ALUControl, rData1, ALUIn2, &Zero, ALURes);
-  //getting the writeregister for right back later for write back later
+  //getting the writeregister for write back later
   BIT WriteReg[5] = {FALSE}, WriteData1[5] = {FALSE}, WriteData2[5] = {FALSE};
   for (int i = 0; i < 5; i++){ //changed from 6 to 5 #####
     WriteData1[i] = instruction[i+16];
     WriteData2[i] = instruction[i+11];
   }
-  for (int i = 0; i < 5; i++){ //changed from 6 to 5 #####
+  for (int i = 0; i < 5; i++){ 
     WriteReg[i] = multiplexor2(RegDst, WriteData1[i], WriteData2[i]);
   }
   //for jal
