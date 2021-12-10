@@ -253,18 +253,13 @@ void convert_to_binary_char(int a, char* A, int length)
     }
   }
 }
-  
-int binary_to_integer(BIT* A)
-{
-  return binary_to_integer_l(A, 32);
-}
 
-int binary_to_integer_l(BIT* A, int length)
+int binary_to_integer(BIT* A)
 {
   unsigned a = 0;
   unsigned mult = 1;
   
-  for (int i = 0; i < length; ++i) {
+  for (int i = 0; i < 32; ++i) {
     a += A[i]*mult;
     mult *= 2;
   }
@@ -593,10 +588,20 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   // Input: two 5-bit register addresses
   // Output: the values of the specified registers in ReadData1 and ReadData2
   // Note: Implementation will be very similar to instruction memory circuit
-  int binary1 = binary_to_integer_l(ReadRegister1, 5);
-  int binary2 = binary_to_integer_l(ReadRegister2, 5);
-  copy_bits(MEM_Register[binary1], ReadData1);
-  copy_bits(MEM_Register[binary2], ReadData2);
+  BIT decoded1[32] = {FALSE};
+  BIT decoded2[32] = {FALSE};
+  decoder5(ReadRegister1, decoded1);
+  decoder5(ReadRegister2, decoded2);
+  int arr_ind1 = 0;
+  int arr_ind2 = 0;
+  int i=31;
+  while(i>=0){
+    arr_ind1 += i*decoded1[i];
+    arr_ind2 += i*decoded2[i];
+    --i;
+  }
+  copy_bits(MEM_Register[arr_ind1], ReadData1);
+  copy_bits(MEM_Register[arr_ind2], ReadData2);
 }
 
 void Write_Register(BIT RegWrite, BIT* WriteRegister, BIT* WriteData)
@@ -838,7 +843,11 @@ void updateState()
   //printf("PC\n");
   // print_binary(rData2);
    //printf("\n");
-  multiplexor2_32(PCSrc, PC, signExtended, BranchMuxRes);
+  BIT CO2[32]={FALSE};
+  BIT result2[32]={FALSE};
+  ALU32(PC,signExtended,0,0,0,1,result2,CO2); //add branch offseto to PC
+
+  multiplexor2_32(PCSrc, PC, result2, BranchMuxRes);
   BIT JumpDest[32] = {FALSE}; //the address of the destination of jump
   //last 4bits of PC+4(1 in this case) + the first 26bits of instruction + 00
   for (int i = 0; i < 4; i++){
@@ -852,7 +861,7 @@ void updateState()
   multiplexor2_32(MemToReg, ALURes, rData, WriteData);
   multiplexor2_32(JalDst, WriteData, PC, WriteData);
   Write_Register(RegWrite, WriteReg, WriteData);
-  
+
   // JumpDest[0] = FALSE, JumpDest[1] = FALSE;
   multiplexor2_32(Jump, BranchMuxRes, JumpDest, PC);
   //JrDec == func == 000010, and then mux if it is 1
