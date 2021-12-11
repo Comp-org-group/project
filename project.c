@@ -555,16 +555,19 @@ void Read_Register(BIT* ReadRegister1, BIT* ReadRegister2,
   // Note: Implementation will be very similar to instruction memory circuit
   BIT decoded1[32] = {FALSE};
   BIT decoded2[32] = {FALSE};
-  decoder5(ReadRegister1, decoded1);
+  //convert 5 bit register adress to 32 bits
+  decoder5(ReadRegister1, decoded1); 
   decoder5(ReadRegister2, decoded2);
   int arr_ind1 = 0;
   int arr_ind2 = 0;
   int i=31;
+  //calculate the integer value
   while(i>=0){
     arr_ind1 += i*decoded1[i];
     arr_ind2 += i*decoded2[i];
     --i;
   }
+  //subscript MEM_Register by the integer value of ReadRegister and copy data to output
   copy_bits(MEM_Register[arr_ind1], ReadData1);
   copy_bits(MEM_Register[arr_ind2], ReadData2);
 }
@@ -704,10 +707,14 @@ void Data_Memory(BIT MemWrite, BIT MemRead,
 
 void Extend_Sign16(BIT* Input, BIT* Output)
 {
-  for (int i=0;i<16;i++) {
+  // TODO: Implement 16-bit to 32-bit sign extender
+  // Copy Input to Output, then extend 16th Input bit to 17-32 bits in Output
+  //set 16 least significant bits of the output to equal the 16 bit input
+  for (int i=0;i<16;i++) { 
     Output[i] = Input[i];
   }
-  for (int i=0;i<16;i++) {
+  //extend the most significant bit in the input to the 16 most significant bits in the output
+  for (int i=0;i<16;i++) {  
     Output[i+16] = Input[15];
   }
 }
