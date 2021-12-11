@@ -50,8 +50,6 @@ void multiplexor2_32(BIT S, BIT* I0, BIT* I1, BIT* Output);
 BIT multiplexor4(BIT S0, BIT S1, BIT I0, BIT I1, BIT I2, BIT I3);
 void decoder3(BIT* I, BIT EN, BIT* O);
 void decoder5(BIT* I, BIT* O);
-void ALU32(BIT* A, BIT* B, BIT Binvert, BIT CarryIn, BIT Op0, BIT Op1, BIT* Result, BIT* CarryOut);
-
 void copy_bits(BIT* A, BIT* B);
 void print_binary(BIT* A);
 void convert_to_binary(int a, BIT* A, int length);
@@ -283,28 +281,6 @@ void ALU1(BIT A, BIT B, BIT Binvert, BIT CarryIn, BIT Less,
   *Result = multiplexor4(Op0, Op1, and_gate(A,B), or_gate(A,B), temp, Less);
   *Set = temp;
 }
-
-void ALU32(BIT* A, BIT* B, BIT Binvert, BIT CarryIn, BIT Op0, BIT Op1, BIT* Result, BIT* CarryOut)
-{
-  // TODO: implement a 32-bit ALU
-  // You'll need to essentially implement a 32-bit ripple adder here
-  // See slide "New 32-bit ALU" in csci2500-f21-ch03a-slides.pdf
-
-  BIT Less = FALSE;
-  BIT Set = FALSE;
-  ALU1(A[0], B[0], Binvert, CarryIn, Less, 
-    Op0, Op1, &Result[0], CarryOut, &Set);
-  for (int i = 1; i < 32; ++i) {
-    ALU1(A[i], B[i], Binvert, *CarryOut, Less, 
-      Op0, Op1, &Result[i], CarryOut, &Set);
-  }
-  
-  Less = Set;
-  ALU1(A[0], B[0], Binvert, CarryIn, Less, 
-    Op0, Op1, &Result[0], CarryOut, &Set);
-}
-
-
 
 /******************************************************************************/
 /* Parsing functions */
@@ -752,10 +728,10 @@ void updateState()
   
   //Fetch
   BIT instruction[32] = {FALSE}; // the output variable
-  BIT CO[32]={FALSE};
+  BIT C[5] = {0,0,1,0,0};
   BIT result[32]={FALSE};
   Instruction_Memory(PC, instruction); //to get instruction
-  ALU32(PC,ONE,0,0,0,1,result,CO);
+  ALU(C, PC, ONE, C+4, result);
   copy_bits(result,PC);
 
   //Decode
@@ -809,9 +785,12 @@ void updateState()
   //for if you branch or not
   BIT PCSrc = and_gate(Branch, Zero);
   BIT BranchMuxRes[32] = {FALSE};
-  BIT CO2[32]={FALSE};
   BIT result2[32]={FALSE};
-  ALU32(PC,signExtended,0,0,0,1,result2,CO2); //add branch offseto to PC
+  C[0] = 0;
+  C[1] = 0;
+  C[2] = 1;
+  C[3] = 0;
+  ALU(C, PC, signExtended, C+4,result2); //add branch offseto to PC
 
   multiplexor2_32(PCSrc, PC, result2, BranchMuxRes);
   BIT JumpDest[32] = {FALSE}; //the address of the destination of jump
